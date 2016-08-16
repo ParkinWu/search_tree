@@ -1,32 +1,40 @@
 use std::boxed::Box;
 
 #[derive(Debug)]
-struct SearchTree<T> {
-    left: Option<Box<SearchTree<T>>>,
-    right: Option<Box<SearchTree<T>>>,
+struct SearchTree<'a, T: 'a> {
+    left: Option<Box<&'a SearchTree<'a,T>>>,
+    right: Option<Box<&'a SearchTree<'a,T>>>,
     key: T,
 }
+fn do_nothing() {
 
-impl<T> SearchTree<T> where T: std::fmt::Debug + std::cmp::Eq + std::cmp::PartialOrd {
-    fn inorder_tree(self) {
-        self.left.map(|x| x.inorder_tree());
+}
+impl<'a, T> SearchTree<'a, T> where T: std::fmt::Debug + std::cmp::Eq + std::cmp::PartialOrd {
+    fn inorder_tree(&self) {
+        match self.left {
+            Some(ref tree) => tree.inorder_tree(),
+            None => do_nothing(),
+        }
         println!("self.key = {:#?}", self.key);
-        self.right.map(|x| x.inorder_tree());
+        match self.right {
+            Some(ref tree) => tree.inorder_tree(),
+            None => do_nothing(),
+        }
     }
 
-    fn search_tree(self, key: T ) -> Option<SearchTree<T>> {
+    fn search_tree(&'a self, key: T ) -> Option<&'a SearchTree<'a, T>> {
         if self.key == key {
-            return Some(self);
+            return Some(&self);
         }
 
         if key < self.key {
             match self.left {
-                Some(tree) => tree.search_tree(key),
+                Some(ref tree) => tree.search_tree(key),
                 None => None
             }
         } else {
             match self.right {
-                Some(tree) => tree.search_tree(key),
+                Some(ref tree) => tree.search_tree(key),
                 None => None
             }
         }
@@ -47,12 +55,12 @@ fn main() {
     };
 
     let root = SearchTree {
-        left: Some(Box::new(left)),
-        right: Some(Box::new(right)),
+        left: Some(Box::new(&left)),
+        right: Some(Box::new(&right)),
         key: 40,
     };
 
-//    root.inorder_tree();
+    root.inorder_tree();
 
     let tree = root.search_tree(43);
     match tree {
@@ -61,4 +69,12 @@ fn main() {
 
     }
 
+
+    let x = create_box_value();
+    println!("x = {:#?}", x);
+    
+}
+
+fn create_box_value<'a>() -> Box<i32> {
+    Box::new(32)
 }
