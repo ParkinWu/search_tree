@@ -39,6 +39,12 @@ impl<'a, T> SearchTree<'a, T> where T: std::fmt::Debug + std::cmp::Eq + std::cmp
             }
         }
     }
+    fn minimum_tree(&'a self) -> &'a SearchTree<'a, T> {
+        match self.left {
+            Some(ref tree) => tree.minimum_tree(),
+            None => &self
+        }
+    }
 }
 
 fn main() {
@@ -61,6 +67,7 @@ fn main() {
     };
 
     root.inorder_tree();
+    left.inorder_tree();
 
     let tree = root.search_tree(43);
     match tree {
@@ -72,6 +79,9 @@ fn main() {
 
     let x = create_box_value();
     println!("x = {:#?}", x);
+
+    let y = root.minimum_tree();
+    println!("minimum = {:#?}", y);
     
 }
 
