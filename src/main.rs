@@ -1,13 +1,13 @@
 use std::boxed::Box;
 
 #[derive(Debug)]
-struct SearchTree<'a, T: 'a> {
-    left: Option<Box<&'a mut SearchTree<'a,T>>>,
-    right: Option<Box<&'a mut SearchTree<'a,T>>>,
+struct SearchTree<T> {
+    left: Option<Box<SearchTree<T>>>,
+    right: Option<Box<SearchTree<T>>>,
     key: T,
 }
 
-impl<'a, T> SearchTree<'a, T> where T: std::fmt::Debug + std::cmp::Eq + std::cmp::PartialOrd {
+impl<T> SearchTree<T> where T: std::fmt::Debug + std::cmp::Eq + std::cmp::PartialOrd + std::clone::Clone {
     fn inorder_tree(&self) {
         if let Some(ref tree) = self.left {
             tree.inorder_tree();
@@ -18,9 +18,9 @@ impl<'a, T> SearchTree<'a, T> where T: std::fmt::Debug + std::cmp::Eq + std::cmp
         }
     }
 
-    fn search_tree(&'a self, key: T ) -> Option<&'a SearchTree<'a, T>> {
+    fn search_tree(&self, key: T ) -> Option<T> {
         if self.key == key {
-            return Some(&self);
+            return Some(self.key.clone());
         }
 
         if key < self.key {
@@ -35,21 +35,21 @@ impl<'a, T> SearchTree<'a, T> where T: std::fmt::Debug + std::cmp::Eq + std::cmp
             }
         }
     }
-    fn minimum_tree(&'a self) -> &'a SearchTree<'a, T> {
+    fn minimum_tree(&self) -> T {
         match self.left {
             Some(ref tree) => tree.minimum_tree(),
-            None => &self
+            None => self.key.clone()
         }
     }
 
-    fn maximum_tree(&'a self) -> &'a SearchTree<'a, T> {
+    fn maximum_tree(&self) -> T {
         match self.right {
             Some(ref tree) => tree.maximum_tree(),
-            None => &self
+            None => self.key.clone()
         }
     }
 
-    fn insert_tree(&'a mut self, tree:&'a SearchTree<'a, T>) {
+    fn insert_tree(&mut self, tree:SearchTree<T>) {
 
         if self.key <= tree.key {
             if let Some(ref mut left) = self.left {
@@ -82,16 +82,17 @@ fn main() {
     };
 
     let mut root = SearchTree {
-        left: Some(Box::new(&left)),
-        right: Some(Box::new(&right)),
+        left: Some(Box::new(left)),
+        right: Some(Box::new(right)),
         key: 40,
     };
+
 
     root.inorder_tree();
 
     let tree = root.search_tree(43);
     match tree {
-        Some(t) => println!("t.key = {:#?}", t.key),
+        Some(t) => println!("t = {:#?}", t),
         None => println!(" None "),
 
     }
@@ -103,15 +104,17 @@ fn main() {
     println!("max = {:#?}", max);
 
 
-    let will_insert_tree = SearchTree {
+    let mut will_insert_tree = SearchTree {
         left: None,
         right: None,
         key: 41,
     };
 
-    root.insert_tree(&will_insert_tree);
+    root.insert_tree(will_insert_tree);
 
     println!("root = {:#?}", root);
+
+    println!("root.search_tree(40) = {:#?}", root.search_tree(41));
 
 }
 
