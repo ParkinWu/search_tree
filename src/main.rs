@@ -8,6 +8,7 @@ struct SearchTree<T> {
 }
 
 impl<T> SearchTree<T> where T: std::fmt::Debug + std::cmp::Eq + std::cmp::PartialOrd + std::clone::Clone {
+    /// 中序遍历节点,只是打印
     fn inorder(&self) {
         if let Some(ref tree) = self.left {
             tree.inorder();
@@ -18,6 +19,7 @@ impl<T> SearchTree<T> where T: std::fmt::Debug + std::cmp::Eq + std::cmp::Partia
         }
     }
 
+    /// 查找节点
     fn search(&self, key: T ) -> Option<T> {
         if self.key == key {
             return Some(self.key.clone());
@@ -35,6 +37,8 @@ impl<T> SearchTree<T> where T: std::fmt::Debug + std::cmp::Eq + std::cmp::Partia
             }
         }
     }
+
+    /// 取出最小节点的 key
     fn minimum(&self) -> T {
         match self.left {
             Some(ref tree) => tree.minimum(),
@@ -42,13 +46,14 @@ impl<T> SearchTree<T> where T: std::fmt::Debug + std::cmp::Eq + std::cmp::Partia
         }
     }
 
+    /// 取出最大节点的 key
     fn maximum(&self) -> T {
         match self.right {
             Some(ref tree) => tree.maximum(),
             None => self.key.clone()
         }
     }
-
+    /// 插入一个节点
     fn insert(&mut self, tree:SearchTree<T>) {
 
         if self.key >= tree.key {
