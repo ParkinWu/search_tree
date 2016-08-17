@@ -1,4 +1,8 @@
 use std::boxed::Box;
+use std::collections::HashMap;
+extern crate time;
+
+
 
 #[derive(Debug)]
 struct SearchTree<T> {
@@ -54,23 +58,34 @@ impl<T> SearchTree<T> where T: std::fmt::Debug + std::cmp::Eq + std::cmp::Partia
         }
     }
     /// 插入一个节点
-    fn insert(&mut self, tree:SearchTree<T>) {
-
-        if self.key >= tree.key {
+    fn insert(&mut self, val: T) {
+        if self.key >= val {
             if let Some(ref mut left) = self.left {
-                left.insert(tree);
+                left.insert(val);
             } else {
-                self.left = Some(Box::new(tree));
+                self.left = Some(Box::new(SearchTree {
+                    left: None,
+                    right: None,
+                    key: val,
+
+                }));
             }
         } else {
             if let Some(ref mut right) = self.right {
-                right.insert(tree);
+                right.insert(val);
             } else {
-                self.right = Some(Box::new(tree));
+                self.right = Some(Box::new(SearchTree {
+                    left: None,
+                    right: None,
+                    key: val,
+
+                }));
             }
         }
     }
 
+
+    /// 删除一个节点
     fn delete(&mut self, key: T) {
 
     }
@@ -78,52 +93,36 @@ impl<T> SearchTree<T> where T: std::fmt::Debug + std::cmp::Eq + std::cmp::Partia
 }
 
 fn main() {
-    let left = SearchTree {
-        left: None,
-        right: None,
-        key: 32,
-    };
-
-    let right = SearchTree {
-        left: None,
-        right: None,
-        key: 43,
-    };
-
     let mut root = SearchTree {
-        left: Some(Box::new(left)),
-        right: Some(Box::new(right)),
-        key: 40,
-    };
-
-
-    root.inorder();
-
-    let tree = root.search(43);
-    match tree {
-        Some(t) => println!("t = {:#?}", t),
-        None => println!(" None "),
-
-    }
-
-    let min = root.minimum();
-    println!("min = {:#?}", min);
-
-    let max = root.maximum();
-    println!("max = {:#?}", max);
-
-
-    let mut will_insert_tree = SearchTree {
         left: None,
         right: None,
-        key: 41,
+        key: 10000001,
     };
+    let mut hash_map = HashMap::new();
+    for i in 1000..100000000 {
+        hash_map.insert(i, i);
+//        root.insert(i);
+    }
+    println!("insert end");
+    let mut start = timestamp();
+    let result = hash_map.keys().filter(|&&x| (x >= 1000000 - 1)).collect::<Vec<_>>();
+    let mut end = timestamp();
+    println!("end - start = {:#?}", end - start);
 
-    root.insert(will_insert_tree);
+    start = timestamp();
+    let max = root.maximum();
+    end = timestamp();
+    println!("end - start = {:#?}", end - start);
+    println!("max = {:#?}", max);
+}
 
-    println!("root = {:#?}", root);
-
-    println!("root.search_tree(41) = {:#?}", root.search(41));
+fn timestamp() -> f64 {
+    let timespec = time::get_time();
+    // 1459440009.113178
+    let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0 );
+    mills
 
 }
+
+
 
