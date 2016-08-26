@@ -1,26 +1,4 @@
 use std::ptr::null_mut;
-struct Node<T> {
-    val: T,
-    next: *mut Box<Node<T>>
-}
-
-struct LinkedList<T> {
-    head: *mut Box<Node<T>>,
-    tail: *mut Box<Node<T>>,
-}
-
-impl<T> LinkedList<T> {
-    fn new() -> LinkedList<T> {
-        return LinkedList {
-            head: null_mut(),
-            tail: null_mut(),
-        };
-
-    }
-//    fn append(&self, val: T) {
-//        let
-//    }
-}
 
 #[derive(Debug)]
 struct Person {
