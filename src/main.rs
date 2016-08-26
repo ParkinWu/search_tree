@@ -77,13 +77,24 @@ fn main() {
             });
         }
 
+        let mut raw_move_p = null_mut();
+
         {
-            let move_p = p;
+            let mut move_p = p;
+            raw_move_p = &mut move_p as *mut Box<Person>
         }
         //    *raw_p = Box::new(20);
 
-
+        for i in 0..2 {
+            let temp = Box::new(Person {
+                name: "temp".to_string(),
+                age: i,
+            });
+        }
 //        let mut_borrow_p = &mut p;
+        unsafe {
+            println!("raw_move_p = {:#?}", *raw_move_p);
+        }
 
 
 
