@@ -1,86 +1,94 @@
-use std::ptr::null_mut;
+use std::fmt::Debug;
 
 #[derive(Debug)]
-struct Person {
-    name: String,
-    age: u32,
-}
-impl Person {
-    fn new() -> Person {
-        return Person {
-            name: "pzwu".to_string(),
-            age: 25,
-        };
-    }
+struct Node<T: Debug> {
+    val: T,
+    next: Option<Box<Node<T>>>
 }
 
-impl Drop for Person {
+impl<T: Debug> Drop for Node<T> {
     fn drop(&mut self) {
-        println!("drop self.name = {:#?}", self.name);
+        println!("--------------------------------");
+        println!("node droped val = {:#?}", self.val);
+        println!("--------------------------------");
     }
-
 }
-fn main() {
-    {
-        let mut p: Box<Person> = Box::new(Person {
-            name: "1".to_string(),
-            age: 199,
-        });
 
+#[derive(Debug)]
+struct LinkedList<T: Debug> {
+    head: Option<Box<Node<T>>>,
+}
 
-        let mut raw_p = &mut p as *mut Box<Person>;
-        //    let ref_p = &p;
-        //    let raw_p_2_ref = &mut unsafe {*raw_p};
-        unsafe {
-            *raw_p = Box::new(Person {
-                name: "2".to_string(),
-                age: 200,
-            });
+impl<T: Debug> Drop for LinkedList<T> {
+    fn drop(&mut self) {
+        println!("--------------------------------");
+        println!("list droped");
+        println!("--------------------------------");
+    }
+}
 
-            println!("raw_p = {:#?}", *raw_p);
+impl<T: Debug> LinkedList<T> {
+    fn new() -> LinkedList<T> {
+        return LinkedList {
+            head: None,
+        };
 
-            let mut raw_p_2_ref = &mut *raw_p;
-            let mut raw_p_2_ref1 = &mut *raw_p;
-
-
-            let mut_borrow_p = &mut p;
-
-            println!("mut_borrow_p = {:#?}", mut_borrow_p);
-            println!("raw_p_2_ref = {:#?}", raw_p_2_ref);
-            println!("raw_p_2_ref1 = {:#?}", raw_p_2_ref1);
-
-            *raw_p_2_ref = Box::new(Person {
-                name: "3".to_string(),
-                age: 300,
-            });
-        }
-
-        let mut raw_move_p = null_mut();
-
-        {
-            let mut move_p = p;
-            raw_move_p = &mut move_p as *mut Box<Person>
-        }
-        //    *raw_p = Box::new(20);
-
-        for i in 0..2 {
-            let temp = Box::new(Person {
-                name: "temp".to_string(),
-                age: i,
-            });
-        }
-//        let mut_borrow_p = &mut p;
-        unsafe {
-            println!("raw_move_p = {:#?}", *raw_move_p);
-        }
-
-
-
-//        println!("mut_borrow_p = {:#?}", mut_borrow_p);
-        println!("inner end");
     }
 
-    println!("end!");
+//    fn delete_last(&mut self) -> Option<Box<Node<T>>> {
+//        match self.head {
+//            Some(ref mut n) => {
+//                unsafe {
+//                    let mut raw_ptr = n as *mut Box<Node<T>>;
+//                    while let Some(ref mut n) = (*raw_ptr).next {
+//                        raw_ptr = n;
+//                    }
+//                    println!("*raw_ptr = {:#?}", *raw_ptr);
+//                    return Some(*raw_ptr);
+//                }
+//            },
+//            None => {
+//                return None;
+//            },
+//        }
+//    }
 
+    fn append(&mut self, val: T) {
+        let temp = Some(Box::new(Node {
+            val: val,
+            next: None,
+        }));
+        match self.head {
+            Some(ref mut v) => {
+                unsafe {
+                    let mut raw_ptr = v as *mut Box<Node<T>>;
+                    loop {
+                        match (*raw_ptr).next {
+                            Some(ref mut n) => {
+                                raw_ptr = n as *mut Box<Node<T>>;
+                            },
+                            None => {
+                                break;
+                            },
+                        }
+                    }
 
+                    (*raw_ptr).next = temp;
+                }
+            },
+            None => {
+                self.head = temp;
+                return;
+            },
+        }
+
+    }
+}
+
+fn main() {
+    let mut list = LinkedList::new();
+    list.append(20);
+    list.append(30);
+    list.append(35);
+    println!("list = {:#?}", list);
 }
