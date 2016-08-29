@@ -1,6 +1,7 @@
 use std::ptr::null_mut;
 use std::mem;
 type Link<T> = Option<Box<Node<T>>>;
+
 #[derive(Debug)]
 struct Raw<T> {
     ptr: *const Node<T>,
@@ -27,6 +28,7 @@ impl<T> Raw<T> {
         mem::replace(self, Raw::none())
     }
 }
+
 #[derive(Debug)]
 struct Node<T> {
     elem: T,
@@ -89,6 +91,19 @@ impl<T> LinedList<T> {
         self.head = Some(new_head);
     }
 
+    fn pop_front(&mut self) -> Option<T> {
+        self.head.take().and_then(|mut head| {
+            // head is Box<Node<T>>
+            head.next.take().map(|mut node| {
+                node.prev = Raw::none();
+                self.head = Some(node);
+            });
+
+            Some(head.elem)
+
+        })
+    }
+
 }
 
 /// 三种格式,
@@ -100,7 +115,9 @@ impl<T> LinedList<T> {
 /// 1. 创建一个 struct 保存 iterator 状态
 /// 2. 为这个 struct 实现 Iterator traid
 fn main() {
-
+    let mut l = LinedList::new();
+    l.push_back(30);
+    l.pop_front();
 }
 
 #[test]
@@ -134,5 +151,17 @@ fn push_front_back_test() {
     assert_eq!(list.pop_back(), Some(22));
     assert_eq!(list.pop_back(), Some(30));
     assert_eq!(list.pop_back(), Some(12));
+}
+
+#[test]
+fn pop_front_test() {
+    let mut list = LinedList::new();
+    list.push_front(30);
+    list.push_front(12);
+    list.push_back(22);
+    assert_eq!(list.pop_front(), Some(12));
+    assert_eq!(list.pop_front(), Some(30));
+    assert_eq!(list.pop_front(), Some(22));
+    assert_eq!(list.pop_front(), None);
 }
 
