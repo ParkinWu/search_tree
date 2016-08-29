@@ -112,6 +112,14 @@ impl<T> LinedList<T> {
         })
     }
 
+    fn iter(&self) -> Iter<T> {
+        Iter {
+            head: &self.head,
+            tail: &self.tail,
+            nelem: self.len,
+        }
+    }
+
 }
 
 /// 三种格式,
@@ -122,10 +130,37 @@ impl<T> LinedList<T> {
 /// 实现 Iterator
 /// 1. 创建一个 struct 保存 iterator 状态
 /// 2. 为这个 struct 实现 Iterator traid
+
+struct Iter<'a, T: 'a> {
+    head: &'a Link<T>,
+    tail: &'a Raw<T>,
+    nelem: usize,
+
+}
+
+impl<'a, T> Iterator for Iter<'a, T> {
+    type Item = &'a T;
+    fn next(&mut self) -> Option<&'a T> {
+        if self.nelem == 0 {
+            return None
+        }
+
+        self.head.as_ref().and_then(|head| {
+            self.nelem -= 1;
+            self.head = &head.next;
+            Some(&head.elem)
+        })
+    }
+}
 fn main() {
     let mut l = LinedList::new();
-    l.push_back(30);
-    l.pop_front();
+    for i in 0..30 {
+        l.push_back(i);
+    }
+
+    for i in l.iter() {
+        println!("i = {:#?}", i);
+    }
 }
 
 #[test]
