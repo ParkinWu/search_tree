@@ -9,7 +9,7 @@ impl Counter {
     }
 }
 
-impl Iterator for Counter {
+impl Iterator for  Counter {
     type Item = usize;
 
     fn next(&mut self) -> Option<usize> {
