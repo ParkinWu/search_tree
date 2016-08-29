@@ -43,6 +43,13 @@ impl<T> Node<T> {
         next.prev = Raw::some(self);
         self.next = Some(next);
     }
+    fn take_next(&mut self) -> Option<Box<Self>> {
+        let mut next = self.next.take();
+        next.as_mut().map(|node| {
+            node.prev = Raw::none();
+        });
+        next
+    }
 }
 #[derive(Debug)]
 struct LinedList<T> {
@@ -94,7 +101,8 @@ impl<T> LinedList<T> {
     fn pop_front(&mut self) -> Option<T> {
         self.head.take().and_then(|mut head| {
             // head is Box<Node<T>>
-            head.next.take().map(|mut node| {
+            self.len -= 1;
+            head.take_next().map(|mut node| {
                 node.prev = Raw::none();
                 self.head = Some(node);
             });
@@ -124,33 +132,53 @@ fn main() {
 fn push_pop_test() {
     let mut l = LinedList::new();
     l.push_back(30);
+    assert_eq!(l.len, 1);
     l.push_back(20);
+    assert_eq!(l.len, 2);
     assert_eq!(l.pop_back(), Some(20));
+    assert_eq!(l.len, 1);
     assert_eq!(l.pop_back(), Some(30));
+    assert_eq!(l.len, 0);
     l.push_back(22);
+    assert_eq!(l.len, 1);
     assert_eq!(l.pop_back(), Some(22));
+    assert_eq!(l.len, 0);
     assert_eq!(l.pop_back(), None);
+    assert_eq!(l.len, 0);
     assert_eq!(l.pop_back(), None);
+    assert_eq!(l.len, 0);
 }
 
 #[test]
 fn push_front_test() {
     let mut list = LinedList::new();
+    assert_eq!(list.len, 0);
     list.push_front(30);
+    assert_eq!(list.len, 1);
     list.push_front(12);
+    assert_eq!(list.len, 2);
     assert_eq!(list.pop_back(), Some(30));
+    assert_eq!(list.len, 1);
     assert_eq!(list.pop_back(), Some(12));
+    assert_eq!(list.len, 0);
 }
 
 #[test]
 fn push_front_back_test() {
     let mut list = LinedList::new();
+    assert_eq!(list.len, 0);
     list.push_front(30);
+    assert_eq!(list.len, 1);
     list.push_front(12);
+    assert_eq!(list.len, 2);
     list.push_back(22);
+    assert_eq!(list.len, 3);
     assert_eq!(list.pop_back(), Some(22));
+    assert_eq!(list.len, 2);
     assert_eq!(list.pop_back(), Some(30));
+    assert_eq!(list.len, 1);
     assert_eq!(list.pop_back(), Some(12));
+    assert_eq!(list.len, 0);
 }
 
 #[test]
