@@ -1,5 +1,8 @@
 use std::ptr::null_mut;
 use std::mem;
+use std::marker::PhantomData;
+use std::fmt::{ Debug, Formatter};
+
 type Link<T> = Option<Box<Node<T>>>;
 
 #[derive(Debug)]
@@ -27,6 +30,9 @@ impl<T> Raw<T> {
     fn take(&mut self) -> Self {
         mem::replace(self, Raw::none())
     }
+    fn clone(&mut self) -> Self {
+        Raw { ptr: self.ptr }
+    }
 }
 
 #[derive(Debug)]
@@ -35,6 +41,12 @@ struct Node<T> {
     next: Link<T>,
     prev: Raw<T>,
 }
+//impl<T> Debug for Node<T> {
+//    fn fmt(&self, fmt: &mut Formatter) -> Result {
+//
+//    }
+//}
+
 impl<T> Node<T> {
     fn new(elem: T) -> Self {
         Node { elem: elem, next: None, prev: Raw::none() }
@@ -119,6 +131,19 @@ impl<T> LinedList<T> {
             nelem: self.len,
         }
     }
+    fn iter_mut(&mut self) -> IterMut<T> {
+        let head_raw = match self.head.as_mut() {
+            Some(head) => Raw::some(head),
+            None => Raw::none(),
+        };
+        IterMut {
+            head: head_raw,
+            tail: self.tail.clone(),
+            nelem: self.len,
+            phantom: PhantomData,
+        }
+
+    }
 
 }
 
@@ -152,13 +177,48 @@ impl<'a, T> Iterator for Iter<'a, T> {
         })
     }
 }
+#[derive(Debug)]
+struct IterMut<'a, T: 'a> {
+    head: Raw<T>,
+    tail: Raw<T>,
+    nelem: usize,
+    phantom: PhantomData<&'a mut T>,
+}
+
+impl<'a, T: Debug> Iterator for IterMut<'a, T> {
+
+    type Item = &'a mut T;
+
+    fn next(&mut self) -> Option<&'a mut T> {
+        if self.nelem == 0 {
+            return None;
+        }
+        self.head.take().as_mut().and_then(|next| {
+            self.nelem -= 1;
+            self.head = match next.next {
+                Some(ref mut node) => Raw::some(&mut **node),
+                None => Raw::none(),
+            };
+            unsafe {
+                Some(&mut *((&mut next.elem) as *mut _))
+            }
+        })
+    }
+}
 fn main() {
     let mut l = LinedList::new();
     for i in 0..30 {
         l.push_back(i);
     }
 
-    for i in l.iter() {
+    for i in l.iter_mut() {
+        if *i > 15  {
+            *i = 0;
+        }
+        println!("i = {:#?}", i);
+    }
+    println!("-------------------------");
+    for i in l.iter_mut() {
         println!("i = {:#?}", i);
     }
 }
